@@ -11,6 +11,9 @@ model Tournament {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   theme     String?
+  location  String?
+  status    String    @default("upcoming") // upcoming | ongoing | finished
+  format    String? // league | group_stage | knockout
   startDate DateTime?
   endDate   DateTime?
   groups    Group[]
@@ -27,33 +30,79 @@ model Group {
 }
 
 model Team {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  id      String       @id @default(auto()) @map("_id") @db.ObjectId
   name    String
   logoUrl String?
-  players Player[]
-  group   Group?   @relation(fields: [groupId], references: [id])
-  groupId String?  @db.ObjectId
   stats   Json?
+  group   Group?       @relation(fields: [groupId], references: [id])
+  groupId String?      @db.ObjectId
+  players PlayerTeam[] @relation("TeamToPlayerTeam")
+
+  // Leaderboard-related stats
+  points Int @default(0)
+  wins   Int @default(0)
+  losses Int @default(0)
+  draws  Int @default(0)
+
+  // ✅ explicit relations for matches
+  matchesAsTeamA Match[]      @relation("TeamA")
+  matchesAsTeamB Match[]      @relation("TeamB")
+  Match          Match[]
+  MatchEvent     MatchEvent[]
 }
 
 model Player {
-  id     String  @id @default(auto()) @map("_id") @db.ObjectId
-  name   String
-  number Int?
-  goals  Int     @default(0)
-  cards  Int     @default(0)
-  team   Team?   @relation(fields: [teamId], references: [id])
-  teamId String? @db.ObjectId
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  number     Int?
+  goals      Int          @default(0)
+  cards      Int          @default(0)
+  teams      PlayerTeam[] @relation("PlayerToPlayerTeam")
+  role       String?      @default("player") // player | admin
+  MatchEvent MatchEvent[]
+}
+
+model PlayerTeam {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  playerId String   @db.ObjectId
+  teamId   String   @db.ObjectId
+  player   Player   @relation("PlayerToPlayerTeam", fields: [playerId], references: [id])
+  team     Team     @relation("TeamToPlayerTeam", fields: [teamId], references: [id])
+  joinedAt DateTime @default(now())
+
+  // Stats per team participation
+  goalsInTeam Int     @default(0)
+  assists     Int     @default(0)
+  position    String?
 }
 
 model Match {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
   tournamentId String?     @db.ObjectId
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
   date         DateTime?
-  teamA        String
-  teamB        String
+  teamAId      String?     @db.ObjectId
+  teamBId      String?     @db.ObjectId
+  teamA        Team?       @relation("TeamA", fields: [teamAId], references: [id])
+  teamB        Team?       @relation("TeamB", fields: [teamBId], references: [id])
   scoreA       Int?        @default(0)
   scoreB       Int?        @default(0)
-  status       String      @default("scheduled") // scheduled | finished
+  status       String      @default("scheduled")
+
+  events MatchEvent[]
+  Team   Team?        @relation(fields: [teamId], references: [id])
+  teamId String?      @db.ObjectId
+}
+
+model MatchEvent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  matchId   String   @db.ObjectId
+  match     Match    @relation(fields: [matchId], references: [id])
+  playerId  String   @db.ObjectId
+  player    Player   @relation(fields: [playerId], references: [id])
+  teamId    String?  @db.ObjectId
+  team      Team?    @relation(fields: [teamId], references: [id])
+  minute    Int? // λεπτό του αγώνα
+  type      String // goal | assist | yellow_card | red_card | substitution
+  createdAt DateTime @default(now())
 }
