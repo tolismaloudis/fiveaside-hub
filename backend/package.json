@@ -1,0 +1,47 @@
+{
+  "name": "fiveaside-manager-backend",
+  "version": "1.0.0",
+  "description": "Backend API for managing and tracking 5-a-side football tournaments — teams, matches, results, and standings.",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "prisma:generate": "npx prisma generate",
+    "prisma:studio": "npx prisma studio",
+    "prisma:format": "npx prisma format",
+    "test:prisma": "npx ts-node src/testPrisma.ts",
+    "clean": "rm -rf dist",
+    "stop": "pkill -f 'node dist/server.js' || echo 'Server not running'"
+  },
+  "keywords": [
+    "express",
+    "typescript",
+    "prisma",
+    "mongodb",
+    "football",
+    "tournaments",
+    "backend"
+  ],
+  "author": "Tolis Maloudis",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.18.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.56.0",
+    "nodemon": "^3.1.0",
+    "prisma": "^6.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

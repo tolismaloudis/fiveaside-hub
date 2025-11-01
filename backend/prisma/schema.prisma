@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Tournament {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  theme     String?
+  startDate DateTime?
+  endDate   DateTime?
+  groups    Group[]
+  matches   Match[]
+  createdAt DateTime  @default(now())
+}
+
+model Group {
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
+  tournamentId String?     @db.ObjectId
+  teams        Team[]
+}
+
+model Team {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  logoUrl String?
+  players Player[]
+  group   Group?   @relation(fields: [groupId], references: [id])
+  groupId String?  @db.ObjectId
+  stats   Json?
+}
+
+model Player {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  number Int?
+  goals  Int     @default(0)
+  cards  Int     @default(0)
+  team   Team?   @relation(fields: [teamId], references: [id])
+  teamId String? @db.ObjectId
+}
+
+model Match {
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
+  tournamentId String?     @db.ObjectId
+  date         DateTime?
+  teamA        String
+  teamB        String
+  scoreA       Int?        @default(0)
+  scoreB       Int?        @default(0)
+  status       String      @default("scheduled") // scheduled | finished
+}
